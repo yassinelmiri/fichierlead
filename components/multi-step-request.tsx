@@ -43,7 +43,7 @@ export function MultiStepRequest() {
     if (step === 2) return form.zones.trim().length > 0
     if (step === 3) return form.quantity.trim().length > 0 && form.channels.length > 0
     return form.firstName.trim() && form.lastName.trim() && form.email.trim() && consent && /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(form.email)
-  }, [step, form, audience])
+  }, [step, form, audience, consent])
   const reset = () => { setAudience(null); setStep(0); setForm(initial); setSent(false); setError(''); setConsent(false) }
   async function submit() {
     setError('')
