@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { ArrowRight } from 'lucide-react'
 
 export function SiteFooter() {
@@ -7,8 +8,7 @@ export function SiteFooter() {
       <div className="container footer-main">
         <div className="footer-brand-block">
           <Link className="brand brand-footer" href="/" aria-label="Fichierlead, accueil">
-            <span className="brand-symbol" aria-hidden="true"><span>F</span></span>
-            <span className="brand-word">Fichier<span>lead</span></span>
+            <Image className="brand-logo brand-logo-footer" src="/images/logo.png" alt="Fichierlead" width={190} height={48} />
           </Link>
           <p>Des données utiles pour des conversations commerciales plus justes.</p>
           <Link className="footer-contact-link" href="/contact">Parler de votre projet <ArrowRight aria-hidden="true" /></Link>
