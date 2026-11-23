@@ -40,17 +40,29 @@ const geographicRegions = [
   { name: 'Île-de-France', code: 'IDF', departments: ['75','77','78','91','92','93','94','95'] },
 ]
 type Department = { code: string; name: string; path: string }
-function geometryPath(geometry: any) {
-  const project = (point: number[]) => {
-    const [lon, lat] = point
-    return [((lon + 5.6) / 15.9) * 600, ((51.4 - lat) / 10.3) * 590]
-  }
+function geometryPath(geometry: any, bounds: [number, number, number, number]) {
+  const [minLon, minLat, maxLon, maxLat] = bounds
+  const width = maxLon - minLon || 1
+  const height = maxLat - minLat || 1
+  const scale = Math.min(560 / width, 550 / height)
+  const offsetX = (600 - width * scale) / 2
+  const offsetY = (590 - height * scale) / 2
+  const project = (point: number[]) => [offsetX + (point[0] - minLon) * scale, offsetY + (maxLat - point[1]) * scale]
   const ringPath = (ring: number[][]) => ring.map((point, index) => {
     const [x, y] = project(point)
     return `${index ? 'L' : 'M'}${x.toFixed(1)},${y.toFixed(1)}`
   }).join(' ') + 'Z'
   const polygons = geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates
   return polygons.map((polygon: number[][][]) => polygon.map(ringPath).join(' ')).join(' ')
+}
+
+function collectCoordinates(value: any, points: number[][] = []): number[][] {
+  if (Array.isArray(value) && typeof value[0] === 'number' && typeof value[1] === 'number') {
+    points.push(value as number[])
+  } else if (Array.isArray(value)) {
+    value.forEach(child => collectCoordinates(child, points))
+  }
+  return points
 }
 
 function GeographicZonePicker({ value, onChange }: { value: string; onChange: (value: string) => void }) {
@@ -68,12 +80,24 @@ function GeographicZonePicker({ value, onChange }: { value: string; onChange: (v
 
   useEffect(() => {
     let active = true
-    fetch('https://geo.api.gouv.fr/departements?fields=nom,code&format=geojson&geometry=contour')
+    fetch('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements.geojson')
       .then(response => { if (!response.ok) throw new Error('Map unavailable'); return response.json() })
       .then(data => {
         if (!active) return
-        const items = (data.features || []).filter((feature: any) => /^(0[1-9]|[1-8][0-9]|9[0-5]|2A|2B)$/.test(feature.properties.code))
-          .map((feature: any) => ({ code: feature.properties.code, name: feature.properties.nom, path: geometryPath(feature.geometry) }))
+        const features = (data.features || []).filter((feature: any) => /^(0[1-9]|[1-8][0-9]|9[0-5]|2A|2B)$/.test(String(feature.properties?.code || '')))
+        const points = features.flatMap((feature: any) => collectCoordinates(feature.geometry?.coordinates))
+        if (!features.length || !points.length) throw new Error('No geographic features')
+        const bounds: [number, number, number, number] = [
+          Math.min(...points.map(point => point[0])),
+          Math.min(...points.map(point => point[1])),
+          Math.max(...points.map(point => point[0])),
+          Math.max(...points.map(point => point[1])),
+        ]
+        const items = features.map((feature: any) => ({
+          code: String(feature.properties.code),
+          name: feature.properties.nom || feature.properties.name || String(feature.properties.code),
+          path: geometryPath(feature.geometry, bounds),
+        }))
         setDepartments(items)
         setLoadingMap(false)
       })
