@@ -16,9 +16,21 @@ export function LeadForm({ kind }: LeadFormProps) {
     event.preventDefault()
     const formElement = event.currentTarget
     if (status === 'sending') return
+
+    if (!formElement.checkValidity()) {
+      formElement.classList.add('has-errors')
+      setFeedback('Veuillez corriger les champs obligatoires indiqués en rouge.')
+      setStatus('error')
+      const firstInvalid = formElement.querySelector<HTMLElement>(':invalid')
+      firstInvalid?.focus()
+      firstInvalid?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      return
+    }
+
+    formElement.classList.remove('has-errors')
     setStatus('sending')
     setFeedback('')
-    const formData = new FormData(event.currentTarget)
+    const formData = new FormData(formElement)
     const payload = Object.fromEntries(formData.entries())
     try {
       const response = await fetch('/api/contact', {
@@ -38,7 +50,18 @@ export function LeadForm({ kind }: LeadFormProps) {
   }
 
   return (
-    <form className="lead-form" onSubmit={handleSubmit}>
+    <form
+      className="lead-form"
+      noValidate
+      onSubmit={handleSubmit}
+      onInput={(event) => {
+        const field = event.target
+        if (field instanceof HTMLInputElement || field instanceof HTMLSelectElement || field instanceof HTMLTextAreaElement) {
+          if (field.checkValidity()) field.removeAttribute('aria-invalid')
+          else field.setAttribute('aria-invalid', 'true')
+        }
+      }}
+    >
       <div className="form-grid">
         <label className="form-field">
           <span>Votre nom <b aria-hidden="true">*</b></span>
@@ -105,7 +128,7 @@ export function LeadForm({ kind }: LeadFormProps) {
         <button className={`button button-primary${status === 'sending' ? ' is-sending' : ''}`} aria-disabled={status === 'sending'} type="submit">{status === 'sending' ? <><Loader2 className="animate-spin" aria-hidden="true" /> Envoi en cours…</> : <>Envoyer ma demande <ArrowRight aria-hidden="true" /></>}</button>
         <span className="form-private"><Mail aria-hidden="true" /> Envoi sécurisé via le serveur Fichierlead.</span>
       </div>
-      {feedback && <p role="status" className={status === 'success' ? 'form-feedback form-feedback-success' : 'form-feedback form-feedback-error'}>{status === 'success' ? <CheckCircle2 aria-hidden="true" /> : <AlertCircle aria-hidden="true" />}{feedback}</p>}
+      {feedback && <p role="status" aria-live="polite" className={status === 'success' ? 'form-feedback form-feedback-success' : 'form-feedback form-feedback-error'}>{status === 'success' ? <CheckCircle2 aria-hidden="true" /> : <AlertCircle aria-hidden="true" />}{feedback}</p>}
     </form>
   )
 }
