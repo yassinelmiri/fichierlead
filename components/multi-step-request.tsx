@@ -1,7 +1,6 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
 import { ArrowLeft, ArrowRight, Building2, Check, CheckCircle2, ChevronRight, Home, Loader2, Mail, MapPin, Send, ShieldCheck, Users } from 'lucide-react'
 
 type Audience = 'particuliers' | 'entreprises'
