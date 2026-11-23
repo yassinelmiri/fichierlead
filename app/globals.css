@@ -788,3 +788,31 @@ body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSyst
 .geo-chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.geo-chips button{display:inline-flex;align-items:center;gap:8px;max-width:100%;padding:7px 10px;border:1px solid #cbdcff;border-radius:30px;background:#fff;color:#1558ed;font-size:11px;cursor:pointer}.geo-chips button span{font-size:15px}
 .geo-hint{margin:0;color:#8290a4;font-size:11px;line-height:1.5}
 @media(max-width:700px){.geo-browser{grid-template-columns:1fr;padding:10px}.geo-map-pane{min-height:280px;order:-1}.geo-france-map{max-height:260px}.geo-check-list{max-height:260px}.geo-selection-summary{min-height:56px;padding:0 12px;font-size:12px}.geo-summary-edit{display:none}.geo-custom-input{flex-direction:column}.geo-custom-input button{min-height:42px}}
+
+
+/* Lead form submit button: keep the primary action visibly enabled */
+.lead-form .form-submit-row > button.button.button-primary:not(:disabled) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 0 24px;
+  border: 1px solid #1558ed;
+  border-radius: 10px;
+  background: #1558ed;
+  background-image: linear-gradient(135deg, #2468ff, #124cdb);
+  color: #fff;
+  opacity: 1;
+  cursor: pointer;
+  pointer-events: auto;
+  box-shadow: 0 8px 20px rgba(21, 87, 236, .18);
+}
+.lead-form .form-submit-row > button.button.button-primary:not(:disabled):hover {
+  background: #0746d3;
+  background-image: linear-gradient(135deg, #1c5be8, #0b43c8);
+}
+.lead-form .form-submit-row > button.button.button-primary:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
