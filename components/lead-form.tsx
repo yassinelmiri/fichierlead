@@ -125,7 +125,7 @@ export function LeadForm({ kind }: LeadFormProps) {
         <span>J’accepte que Fichierlead utilise ces informations pour répondre à ma demande. <a href="/mentions-legales">En savoir plus</a>.</span>
       </label>
       <div className="form-submit-row">
-        <button className={`button button-primary${status === 'sending' ? ' is-sending' : ''}`} aria-disabled={status === 'sending'} type="submit">{status === 'sending' ? <><Loader2 className="animate-spin" aria-hidden="true" /> Envoi en cours…</> : <>Envoyer ma demande <ArrowRight aria-hidden="true" /></>}</button>
+        <button className={`button button-primary${status === 'sending' ? ' is-sending' : ''}`} aria-busy={status === 'sending'} type="submit">{status === 'sending' ? <><Loader2 className="animate-spin" aria-hidden="true" /> Envoi en cours…</> : <>Envoyer ma demande <ArrowRight aria-hidden="true" /></>}</button>
         <span className="form-private"><Mail aria-hidden="true" /> Envoi sécurisé via le serveur Fichierlead.</span>
       </div>
       {feedback && <p role="status" aria-live="polite" className={status === 'success' ? 'form-feedback form-feedback-success' : 'form-feedback form-feedback-error'}>{status === 'success' ? <CheckCircle2 aria-hidden="true" /> : <AlertCircle aria-hidden="true" />}{feedback}</p>}
