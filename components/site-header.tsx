@@ -1,5 +1,8 @@
+'use client'
+
 import Link from 'next/link'
-import { ArrowRight, ChevronDown } from 'lucide-react'
+import { usePathname } from 'next/navigation'
+import { ArrowRight } from 'lucide-react'
 
 const navigation = [
   { href: '/solutions', label: 'Nos solutions' },
@@ -8,6 +11,8 @@ const navigation = [
 ]
 
 export function SiteHeader() {
+  const pathname = usePathname()
+
   return (
     <>
       <a className="skip-link" href="#main-content">Aller au contenu</a>
@@ -25,14 +30,20 @@ export function SiteHeader() {
             <span className="brand-word">Fichier<span>lead</span></span>
           </Link>
           <nav className="desktop-nav" aria-label="Navigation principale">
-            {navigation.map((item) => <Link href={item.href} key={item.href}>{item.label}</Link>)}
+            {navigation.map((item) => {
+              const active = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href + '/'))
+              return <Link aria-current={active ? 'page' : undefined} className={active ? 'nav-link nav-link-active' : 'nav-link'} href={item.href} key={item.href}>{item.label}</Link>
+            })}
           </nav>
           <div className="header-actions">
             <Link className="button button-primary button-small" href="/devis">Construire mon devis <ArrowRight aria-hidden="true" /></Link>
             <details className="mobile-menu">
               <summary aria-label="Ouvrir le menu"><span className="menu-lines" aria-hidden="true"><i /><i /></span><span className="sr-only">Menu</span></summary>
               <nav className="mobile-nav" aria-label="Navigation mobile">
-                {navigation.map((item) => <Link href={item.href} key={item.href}>{item.label}</Link>)}
+                {navigation.map((item) => {
+                  const active = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href + '/'))
+                  return <Link aria-current={active ? 'page' : undefined} className={active ? 'mobile-nav-active' : undefined} href={item.href} key={item.href}>{item.label}</Link>
+                })}
                 <Link className="mobile-nav-cta" href="/devis">Construire mon devis <ArrowRight aria-hidden="true" /></Link>
               </nav>
             </details>
