@@ -85,7 +85,17 @@ function GeographicZonePicker({ value, onChange }: { value: string; onChange: (v
     const next = selected.includes(item) ? selected.filter(entry => entry !== item) : [...selected, item]
     onChange(next.join(' | '))
   }
-  const toggleDepartment = (department: Department) => toggleItem(`Département: ${department.code} - ${department.name}`)
+  const toggleDepartment = (department: Department) => {
+    const parentRegion = geographicRegions.find(region => region.departments.includes(department.code) && selectedRegions.includes(region.name))
+    if (parentRegion) {
+      const withoutRegion = selected.filter(item => item !== `Région: ${parentRegion.name}`)
+      const remaining = parentRegion.departments.filter(code => code !== department.code && !withoutRegion.some(item => item.startsWith(`Département: ${code} -`)))
+      const names = new Map(departments.map(item => [item.code, item.name]))
+      onChange([...withoutRegion, ...remaining.map(code => `Département: ${code} - ${names.get(code) || code}`)].join(' | '))
+      return
+    }
+    toggleItem(`Département: ${department.code} - ${department.name}`)
+  }
   const toggleRegion = (region: typeof geographicRegions[number]) => toggleItem(`Région: ${region.name}`)
   const isDepartmentSelected = (department: Department) => selectedDepartments.includes(department.code) || geographicRegions.some(region => selectedRegions.includes(region.name) && region.departments.includes(department.code))
   const addCustom = (label: string) => {
