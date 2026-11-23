@@ -87,12 +87,12 @@ function GeographicZonePicker({ value, onChange }: { value: string; onChange: (v
         const features = (data.features || []).filter((feature: any) => /^(0[1-9]|[1-8][0-9]|9[0-5]|2A|2B)$/.test(String(feature.properties?.code || '')))
         const points = features.flatMap((feature: any) => collectCoordinates(feature.geometry?.coordinates))
         if (!features.length || !points.length) throw new Error('No geographic features')
-        const bounds: [number, number, number, number] = [
-          Math.min(...points.map(point => point[0])),
-          Math.min(...points.map(point => point[1])),
-          Math.max(...points.map(point => point[0])),
-          Math.max(...points.map(point => point[1])),
-        ]
+        const bounds = points.reduce<[number, number, number, number]>((current, point) => [
+          Math.min(current[0], point[0]),
+          Math.min(current[1], point[1]),
+          Math.max(current[2], point[0]),
+          Math.max(current[3], point[1]),
+        ], [Infinity, Infinity, -Infinity, -Infinity])
         const items = features.map((feature: any) => ({
           code: String(feature.properties.code),
           name: feature.properties.nom || feature.properties.name || String(feature.properties.code),
