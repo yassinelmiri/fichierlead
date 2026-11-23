@@ -844,3 +844,19 @@ body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSyst
   line-height: 1.5;
 }
 .lead-form .form-feedback-error svg { flex: none; margin-top: 1px; }
+
+
+/* Final interaction override: the lead form submit action stays clickable */
+.lead-form .form-submit-row {
+  position: relative;
+  z-index: 5;
+}
+.lead-form .form-submit-row > button.button.button-primary {
+  position: relative;
+  z-index: 6;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+.lead-form .form-submit-row > button.button.button-primary.is-sending {
+  cursor: progress !important;
+}
