@@ -816,3 +816,31 @@ body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSyst
   opacity: .55;
   cursor: not-allowed;
 }
+
+
+/* Accessible validation feedback for the contact and quote forms */
+.lead-form.has-errors input:invalid,
+.lead-form.has-errors select:invalid,
+.lead-form.has-errors textarea:invalid,
+.lead-form [aria-invalid="true"] {
+  border-color: #dc2626 !important;
+  background-color: #fff7f7 !important;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, .10) !important;
+}
+.lead-form.has-errors .consent-line input:invalid {
+  outline: 2px solid #dc2626;
+  outline-offset: 3px;
+}
+.lead-form .form-feedback-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 12px 14px;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  background: #fff1f2;
+  color: #b91c1c;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.lead-form .form-feedback-error svg { flex: none; margin-top: 1px; }
