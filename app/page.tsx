@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { ArrowRight, Building2, CheckCircle2, Home, ShieldCheck } from 'lucide-react'
 
 export default function HomePage() {
-  return <main className="request-home">
+  return <div className="request-home">
     <section className="request-home-hero">
       <span className="request-eyebrow"><ShieldCheck /> Fichierlead — Des données pour vos projets</span>
       <h1>Votre besoin. <span>Notre expertise.</span></h1>
