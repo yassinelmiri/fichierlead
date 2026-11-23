@@ -31,7 +31,8 @@ export function MultiStepRequest() {
   const [form, setForm] = useState<FormState>(initial)
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)
-  const [error, setError] = useState('')\n  const [consent, setConsent] = useState(false)
+  const [error, setError] = useState('')
+  const [consent, setConsent] = useState(false)
   const options = audience === 'particuliers' ? individualCategories : companyCategories
   const progress = audience ? Math.round(((step + 1) / 5) * 100) : 0
   const update = (key: keyof FormState, value: FormState[keyof FormState]) => setForm(old => ({ ...old, [key]: value }))
