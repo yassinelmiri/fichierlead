@@ -15,6 +15,7 @@ export function LeadForm({ kind }: LeadFormProps) {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    const formElement = event.currentTarget
     if (status === 'sending') return
     setStatus('sending')
     setFeedback('')
@@ -30,7 +31,7 @@ export function LeadForm({ kind }: LeadFormProps) {
       if (!response.ok) throw new Error(result.error || 'Impossible d’envoyer votre message.')
       setStatus('success')
       setFeedback('Votre message a bien été envoyé. Notre équipe vous répondra dès que possible.')
-      event.currentTarget.reset()
+      formElement.reset()
     } catch (error) {
       setStatus('error')
       setFeedback(error instanceof Error ? error.message : 'Une erreur est survenue. Réessayez dans quelques instants.')
