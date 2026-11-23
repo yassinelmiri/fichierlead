@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { ArrowRight } from 'lucide-react'
 
@@ -26,8 +27,7 @@ export function SiteHeader() {
       <header className="site-header">
         <div className="container header-inner">
           <Link className="brand" href="/" aria-label="Fichierlead, accueil">
-            <span className="brand-symbol" aria-hidden="true"><span>F</span></span>
-            <span className="brand-word">Fichier<span>lead</span></span>
+            <Image className="brand-logo" src="/images/logo.png" alt="Fichierlead" width={190} height={48} priority />
           </Link>
           <nav className="desktop-nav" aria-label="Navigation principale">
             {navigation.map((item) => {
