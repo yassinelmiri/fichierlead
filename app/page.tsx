@@ -13,5 +13,5 @@ export default function HomePage() {
       </div>
       <div className="request-home-trust"><span><CheckCircle2 /> Parcours guidé</span><span><CheckCircle2 /> Demande sur mesure</span><span><CheckCircle2 /> Contact humain</span></div>
     </section>
-  </main>
+  </div>
 }
