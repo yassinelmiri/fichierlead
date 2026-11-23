@@ -13,8 +13,8 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const name = String(body.name || body['Votre nom'] || '').trim()
-    const email = String(body['E-mail professionnel'] || '').trim()
+    const name = String(body.Nom || body.name || body['Votre nom'] || '').trim()
+    const email = String(body['Email professionnel'] || body['E-mail professionnel'] || '').trim()
     const company = String(body.Entreprise || '').trim()
     const subjectChoice = String(body.Sujet || body['Type de besoin'] || '').trim()
     const message = String(body.Message || '').trim()
