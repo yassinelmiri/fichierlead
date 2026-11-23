@@ -1,7 +1,7 @@
 'use client'
 
-import { useMemo, useState } from 'react'
-import { ArrowLeft, ArrowRight, Building2, Check, CheckCircle2, ChevronRight, Home, Loader2, Mail, MapPin, Send, ShieldCheck, Users } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { ArrowLeft, ArrowRight, Building2, Check, CheckCircle2, ChevronRight, Home, Loader2, Mail, MapPin, Plus, Search, Send, ShieldCheck, Users } from 'lucide-react'
 
 type Audience = 'particuliers' | 'entreprises'
 type FormState = {
@@ -25,61 +25,132 @@ const criteriaOptions = ['Propriétaire', 'Type de logement', 'Maison individuel
 const sectorsOptions = ['BTP / Construction', 'Commerce / Distribution', 'Santé', 'Immobilier', 'Informatique / Tech', 'Restauration', 'Transport / Logistique', 'Services', 'Formation', 'Industrie', 'Autre secteur']
 const channelOptions = ['E-mail', 'Téléphone', 'Courrier postal', 'À définir ensemble']
 const geographicRegions = [
-  { name: 'Bretagne', code: 'BRE', hint: '22 · 29 · 35 · 56', position: 'bretagne' },
-  { name: 'Normandie', code: 'NOR', hint: '14 · 27 · 50 · 61 · 76', position: 'normandie' },
-  { name: 'Hauts-de-France', code: 'HDF', hint: '02 · 59 · 60 · 62 · 80', position: 'hauts' },
-  { name: 'Île-de-France', code: 'IDF', hint: '75 · 77 · 78 · 91 · 92 · 93 · 94 · 95', position: 'idf' },
-  { name: 'Pays de la Loire', code: 'PDL', hint: '44 · 49 · 53 · 72 · 85', position: 'pays' },
-  { name: 'Centre-Val de Loire', code: 'CVL', hint: '18 · 28 · 36 · 37 · 41 · 45', position: 'centre' },
-  { name: 'Grand Est', code: 'GES', hint: '08 · 10 · 51 · 52 · 54 · 55 · 57 · 67 · 68 · 88', position: 'est' },
-  { name: 'Nouvelle-Aquitaine', code: 'NAQ', hint: '16 · 17 · 19 · 23 · 24 · 33 · 40 · 47 · 64 · 79 · 86 · 87', position: 'aquitaine' },
-  { name: 'Bourgogne-Franche-Comté', code: 'BFC', hint: '21 · 25 · 39 · 58 · 70 · 71 · 89 · 90', position: 'bourgogne' },
-  { name: 'Auvergne-Rhône-Alpes', code: 'ARA', hint: '01 · 03 · 07 · 15 · 26 · 38 · 42 · 43 · 63 · 69 · 73 · 74', position: 'auvergne' },
-  { name: 'Occitanie', code: 'OCC', hint: '09 · 11 · 12 · 30 · 31 · 32 · 34 · 46 · 48 · 65 · 66 · 81 · 82', position: 'occitanie' },
-  { name: 'Provence-Alpes-Côte d’Azur', code: 'PAC', hint: '04 · 05 · 06 · 13 · 83 · 84', position: 'paca' },
-  { name: 'Corse', code: 'COR', hint: '2A · 2B', position: 'corse' },
-  { name: 'Outre-mer', code: 'OM', hint: 'Guadeloupe · Martinique · Guyane · Réunion · Mayotte', position: 'outremer' },
+  { name: 'Auvergne-Rhône-Alpes', code: 'ARA', departments: ['01','03','07','15','26','38','42','43','63','69','73','74'] },
+  { name: 'Bourgogne-Franche-Comté', code: 'BFC', departments: ['21','25','39','58','70','71','89','90'] },
+  { name: 'Bretagne', code: 'BRE', departments: ['22','29','35','56'] },
+  { name: 'Centre-Val de Loire', code: 'CVL', departments: ['18','28','36','37','41','45'] },
+  { name: 'Corse', code: 'COR', departments: ['2A','2B'] },
+  { name: 'Grand Est', code: 'GES', departments: ['08','10','51','52','54','55','57','67','68','88'] },
+  { name: 'Hauts-de-France', code: 'HDF', departments: ['02','59','60','62','80'] },
+  { name: 'Normandie', code: 'NOR', departments: ['14','27','50','61','76'] },
+  { name: 'Nouvelle-Aquitaine', code: 'NAQ', departments: ['16','17','19','23','24','33','40','47','64','79','86','87'] },
+  { name: 'Occitanie', code: 'OCC', departments: ['09','11','12','30','31','32','34','46','48','65','66','81','82'] },
+  { name: 'Pays de la Loire', code: 'PDL', departments: ['44','49','53','72','85'] },
+  { name: 'Provence-Alpes-Côte d’Azur', code: 'PAC', departments: ['04','05','06','13','83','84'] },
+  { name: 'Île-de-France', code: 'IDF', departments: ['75','77','78','91','92','93','94','95'] },
 ]
-
+type Department = { code: string; name: string; path: string }
+function geometryPath(geometry: any) {
+  const project = (point: number[]) => {
+    const [lon, lat] = point
+    return [((lon + 5.6) / 15.9) * 600, ((51.4 - lat) / 10.3) * 590]
+  }
+  const ringPath = (ring: number[][]) => ring.map((point, index) => {
+    const [x, y] = project(point)
+    return `${index ? 'L' : 'M'}${x.toFixed(1)},${y.toFixed(1)}`
+  }).join(' ') + 'Z'
+  const polygons = geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates
+  return polygons.map((polygon: number[][][]) => polygon.map(ringPath).join(' ')).join(' ')
+}
 
 function GeographicZonePicker({ value, onChange }: { value: string; onChange: (value: string) => void }) {
   const [search, setSearch] = useState('')
-  const selected = value ? value.split(',').map(item => item.trim()).filter(Boolean) : []
-  const filtered = geographicRegions.filter(region => (region.name + ' ' + region.code + ' ' + region.hint).toLowerCase().includes(search.toLowerCase()))
-  const toggleRegion = (name: string) => {
-    const next = selected.includes(name) ? selected.filter(item => item !== name) : [...selected, name]
-    onChange(next.join(', '))
+  const [openSection, setOpenSection] = useState('departements')
+  const [departments, setDepartments] = useState<Department[]>([])
+  const [loadingMap, setLoadingMap] = useState(true)
+  const [mapError, setMapError] = useState(false)
+  const [customValue, setCustomValue] = useState('')
+  const selected = value ? value.split('|').map(item => item.trim()).filter(Boolean) : []
+  const selectedDepartments = selected.filter(item => item.startsWith('Département:')).map(item => item.split(':')[1]?.trim().split(' ')[0])
+  const selectedRegions = selected.filter(item => item.startsWith('Région:')).map(item => item.replace('Région:', '').trim())
+  const filteredDepartments = departments.filter(department => (department.code + ' ' + department.name).toLowerCase().includes(search.toLowerCase()))
+  const filteredRegions = geographicRegions.filter(region => (region.name + ' ' + region.code).toLowerCase().includes(search.toLowerCase()))
+
+  useEffect(() => {
+    let active = true
+    fetch('https://geo.api.gouv.fr/departements?fields=nom,code&format=geojson&geometry=contour')
+      .then(response => { if (!response.ok) throw new Error('Map unavailable'); return response.json() })
+      .then(data => {
+        if (!active) return
+        const items = (data.features || []).filter((feature: any) => /^(0[1-9]|[1-8][0-9]|9[0-5]|2A|2B)$/.test(feature.properties.code))
+          .map((feature: any) => ({ code: feature.properties.code, name: feature.properties.nom, path: geometryPath(feature.geometry) }))
+        setDepartments(items)
+        setLoadingMap(false)
+      })
+      .catch(() => { if (active) { setLoadingMap(false); setMapError(true) } })
+    return () => { active = false }
+  }, [])
+
+  const toggleItem = (item: string) => {
+    const next = selected.includes(item) ? selected.filter(entry => entry !== item) : [...selected, item]
+    onChange(next.join(' | '))
   }
+  const toggleDepartment = (department: Department) => toggleItem(`Département: ${department.code} - ${department.name}`)
+  const toggleRegion = (region: typeof geographicRegions[number]) => toggleItem(`Région: ${region.name}`)
+  const isDepartmentSelected = (department: Department) => selectedDepartments.includes(department.code) || geographicRegions.some(region => selectedRegions.includes(region.name) && region.departments.includes(department.code))
+  const addCustom = (label: string) => {
+    const trimmed = customValue.trim()
+    if (!trimmed) return
+    toggleItem(`${label}: ${trimmed}`)
+    setCustomValue('')
+  }
+  const sections = [
+    { id: 'regions', title: 'Régions' },
+    { id: 'departements', title: 'Départements' },
+    { id: 'villes', title: 'Villes' },
+    { id: 'postal', title: 'Code postal' },
+    { id: 'cantons', title: 'Canton' },
+    { id: 'adresse', title: 'Autour d’une adresse' },
+  ]
   return <>
     <div className="request-step-heading">
       <span className="request-step-icon"><MapPin /></span>
-      <div><h2>Quelle zone géographique ?</h2><p>Sélectionnez une ou plusieurs régions sur notre carte simplifiée de France, ou recherchez une zone.</p></div>
+      <div><h2>Quelle zone géographique ?</h2><p>Sélectionnez vos zones directement sur la carte ou dans la liste.</p></div>
     </div>
     <div className="geo-picker">
-      <div className="geo-picker-toolbar">
-        <label className="geo-search"><MapPin /><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Rechercher une région, un code ou un département…" aria-label="Rechercher une zone géographique" /></label>
-        <span className="geo-count">{selected.length} zone{selected.length > 1 ? 's' : ''} sélectionnée{selected.length > 1 ? 's' : ''}</span>
+      <div className="geo-selection-summary">
+        <span className="geo-summary-icon"><MapPin /></span>
+        <span>{selected.length ? `${selected.length} zone(s) choisie(s)` : 'Choisir mes critères géographiques'}</span>
+        {selected.length > 0 && <button type="button" onClick={() => onChange('')}>Tout effacer</button>}
+        <span className="geo-summary-edit"><Check /></span>
       </div>
-      <div className="geo-map-panel">
-        <div className="geo-map-caption"><span className="geo-live-dot" /> France métropolitaine & outre-mer <small>Choix multiple</small></div>
-        <div className="geo-region-map" aria-label="Sélection des régions françaises">
-          {filtered.map(region => <button type="button" key={region.code} onClick={() => toggleRegion(region.name)} className={`geo-region geo-${region.position} ${selected.includes(region.name) ? 'is-selected' : ''}`} aria-pressed={selected.includes(region.name)}>
-            <strong>{region.name}</strong><small>{region.code}</small>
-          </button>)}
-          {filtered.length === 0 && <div className="geo-empty">Aucune région trouvée. Essayez un autre nom ou code.</div>}
-        </div>
-        <div className="geo-map-legend"><span><i className="geo-legend-dot" /> Disponible</span><span><i className="geo-legend-dot selected" /> Sélectionnée</span></div>
+      <div className="geo-accordions">
+        {sections.map(section => <section className="geo-section" key={section.id}>
+          <button type="button" className={openSection === section.id ? 'geo-section-trigger active' : 'geo-section-trigger'} onClick={() => setOpenSection(openSection === section.id ? '' : section.id)} aria-expanded={openSection === section.id}>
+            <ChevronRight className="geo-section-chevron" /><span>{section.title}</span>{section.id === 'departements' && selectedDepartments.length > 0 && <small>{selectedDepartments.length} sélectionné(s)</small>}
+          </button>
+          {openSection === section.id && <div className="geo-section-content">
+            {(section.id === 'regions' || section.id === 'departements') && <>
+              <div className="geo-browser">
+                <div className="geo-list-pane">
+                  <label className="geo-search"><Search /><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Rechercher dans la liste" aria-label="Rechercher une région ou un département" /></label>
+                  {section.id === 'regions' ? <div className="geo-check-list">
+                    <label className="geo-check-row"><input type="checkbox" checked={geographicRegions.every(region => selectedRegions.includes(region.name))} onChange={() => onChange(geographicRegions.every(region => selectedRegions.includes(region.name)) ? selected.filter(item => !item.startsWith('Région:')).join(' | ') : [...selected.filter(item => !item.startsWith('Région:')), ...geographicRegions.map(region => `Région: ${region.name}`)].join(' | '))} /><span>Toutes les régions</span></label>
+                    {filteredRegions.map(region => <label className="geo-check-row" key={region.code}><input type="checkbox" checked={selectedRegions.includes(region.name)} onChange={() => toggleRegion(region)} /><span>{region.name}</span><small>{region.departments.length} dép.</small></label>)}
+                  </div> : <div className="geo-check-list">
+                    <label className="geo-check-row"><input type="checkbox" checked={departments.length > 0 && departments.every(department => isDepartmentSelected(department))} onChange={() => onChange(departments.length > 0 && departments.every(department => isDepartmentSelected(department)) ? selected.filter(item => !item.startsWith('Département:') && !item.startsWith('Région:')).join(' | ') : departments.map(department => `Département: ${department.code} - ${department.name}`).join(' | '))} /><span>Tous les départements</span></label>
+                    {filteredDepartments.map(department => <label className="geo-check-row" key={department.code}><input type="checkbox" checked={isDepartmentSelected(department)} onChange={() => toggleDepartment(department)} /><span>{department.code} - {department.name}</span></label>)}
+                  </div>}
+                </div>
+                <div className="geo-map-pane">
+                  <div className="geo-map-controls"><span>France métropolitaine</span><span className="geo-map-zoom"><Plus /></span></div>
+                  {loadingMap ? <div className="geo-map-loading">Chargement de la carte…</div> : mapError ? <div className="geo-map-loading">La carte n’a pas pu être chargée. Utilisez la liste à gauche.</div> : <svg className="geo-france-map" viewBox="0 0 600 590" role="img" aria-label="Carte interactive des départements français">
+                    {departments.map(department => <path key={department.code} d={department.path} className={isDepartmentSelected(department) ? 'geo-department-shape selected' : 'geo-department-shape'} onClick={() => toggleDepartment(department)} role="button" tabIndex={0} aria-label={`${department.code} - ${department.name}`} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggleDepartment(department) } }} />)}
+                  </svg>}
+                  <div className="geo-map-footer">{selected.length ? `${selected.length} zone(s) sélectionnée(s)` : 'Cliquez sur un département pour le sélectionner'}</div>
+                </div>
+              </div>
+            </>}
+            {['villes','postal','cantons','adresse'].includes(section.id) && <div className="geo-custom-entry">
+              <p>{section.id === 'villes' ? 'Ajoutez une ou plusieurs villes à cibler.' : section.id === 'postal' ? 'Saisissez un ou plusieurs codes postaux.' : section.id === 'cantons' ? 'Précisez le ou les cantons souhaités.' : 'Indiquez une adresse et le rayon de prospection souhaité.'}</p>
+              <div className="geo-custom-input"><input value={customValue} onChange={event => setCustomValue(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') addCustom(section.title) }} placeholder={section.id === 'villes' ? 'Ex. : Lyon, Bordeaux…' : section.id === 'postal' ? 'Ex. : 75015, 69000…' : section.id === 'cantons' ? 'Nom du canton…' : 'Adresse complète…'} /><button type="button" onClick={() => addCustom(section.title)} disabled={!customValue.trim()}>Ajouter</button></div>
+              {section.id === 'adresse' && <select className="geo-radius-select" aria-label="Rayon autour de l’adresse"><option>Rayon : 5 km</option><option>Rayon : 10 km</option><option>Rayon : 20 km</option><option>Rayon : 30 km</option><option>Rayon : 50 km</option></select>}
+            </div>}
+          </div>}
+        </section>)}
       </div>
-      <div className="geo-region-details">
-        <div className="geo-region-details-title"><strong>Choisir par région</strong><span>Appuyez pour ajouter ou retirer une région</span></div>
-        <div className="geo-region-list">
-          {filtered.map(region => <button type="button" key={region.code} onClick={() => toggleRegion(region.name)} className={selected.includes(region.name) ? 'geo-region-option selected' : 'geo-region-option'} aria-pressed={selected.includes(region.name)}>
-            <span className="geo-option-check">{selected.includes(region.name) && <Check />}</span><span className="geo-option-copy"><strong>{region.name}</strong><small>{region.hint}</small></span>
-          </button>)}
-        </div>
-      </div>
-      {selected.length > 0 && <div className="geo-selected"><div><strong>Votre sélection</strong><span>{selected.length} zone(s) incluse(s) dans votre demande</span></div><div className="geo-chips">{selected.map(name => <button type="button" key={name} onClick={() => toggleRegion(name)} aria-label={`Retirer ${name}`}>{name}<span>×</span></button>)}</div><button type="button" className="geo-clear" onClick={() => onChange('')}>Tout effacer</button></div>}
-      <p className="geo-hint">Vous pouvez sélectionner plusieurs régions. Les départements correspondants sont indiqués sous chaque région.</p>
+      {selected.length > 0 && <div className="geo-selected"><strong>Votre sélection</strong><div className="geo-chips">{selected.map(item => <button type="button" key={item} onClick={() => toggleItem(item)}>{item.replace(/^(Région|Département): /, '')}<span>×</span></button>)}</div></div>}
+      <p className="geo-hint">Vous pouvez combiner plusieurs régions, départements, villes et codes postaux.</p>
     </div>
   </>
 }
