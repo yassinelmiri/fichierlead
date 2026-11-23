@@ -33,10 +33,10 @@ const geographicRegions = [
   { name: 'Centre-Val de Loire', code: 'CVL', hint: '18 · 28 · 36 · 37 · 41 · 45', position: 'centre' },
   { name: 'Grand Est', code: 'GES', hint: '08 · 10 · 51 · 52 · 54 · 55 · 57 · 67 · 68 · 88', position: 'est' },
   { name: 'Nouvelle-Aquitaine', code: 'NAQ', hint: '16 · 17 · 19 · 23 · 24 · 33 · 40 · 47 · 64 · 79 · 86 · 87', position: 'aquitaine' },
-  { name: 'Bourgogne-Franche-Comté', code: 'BFC', hint: '21 · 25 · 39 · 58 · 70 · 71 · 89 · 90'.replace(' todo ·', ''), position: 'bourgogne' },
+  { name: 'Bourgogne-Franche-Comté', code: 'BFC', hint: '21 · 25 · 39 · 58 · 70 · 71 · 89 · 90', position: 'bourgogne' },
   { name: 'Auvergne-Rhône-Alpes', code: 'ARA', hint: '01 · 03 · 07 · 15 · 26 · 38 · 42 · 43 · 63 · 69 · 73 · 74', position: 'auvergne' },
-  { name: 'Occitanie', code: 'OCC', hint: '09 · 11 · 12 · 30 · 31 · 32 · 34 · 46 · 48 · 65 · 66 · 81 · 82'.replace(' podrán ·', '·').replace(' · да', ''), position: 'occitanie' },
-  { name: 'Provence-Alpes-Côte d’Azur', code: 'PAC', hint: '04 · 05 · 06 · 13 · 83 · 84'.replace(' · ча', ''), position: 'paca' },
+  { name: 'Occitanie', code: 'OCC', hint: '09 · 11 · 12 · 30 · 31 · 32 · 34 · 46 · 48 · 65 · 66 · 81 · 82', position: 'occitanie' },
+  { name: 'Provence-Alpes-Côte d’Azur', code: 'PAC', hint: '04 · 05 · 06 · 13 · 83 · 84', position: 'paca' },
   { name: 'Corse', code: 'COR', hint: '2A · 2B', position: 'corse' },
   { name: 'Outre-mer', code: 'OM', hint: 'Guadeloupe · Martinique · Guyane · Réunion · Mayotte', position: 'outremer' },
 ]
