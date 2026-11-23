@@ -24,6 +24,66 @@ const companyCategories = ['Fichier d’entreprises', 'Dirigeants / décideurs',
 const criteriaOptions = ['Propriétaire', 'Type de logement', 'Maison individuelle', 'Appartement', 'Équipement / projet', 'Autre critère']
 const sectorsOptions = ['BTP / Construction', 'Commerce / Distribution', 'Santé', 'Immobilier', 'Informatique / Tech', 'Restauration', 'Transport / Logistique', 'Services', 'Formation', 'Industrie', 'Autre secteur']
 const channelOptions = ['E-mail', 'Téléphone', 'Courrier postal', 'À définir ensemble']
+const geographicRegions = [
+  { name: 'Bretagne', code: 'BRE', hint: '22 · 29 · 35 · 56', position: 'bretagne' },
+  { name: 'Normandie', code: 'NOR', hint: '14 · 27 · 50 · 61 · 76', position: 'normandie' },
+  { name: 'Hauts-de-France', code: 'HDF', hint: '02 · 59 · 60 · 62 · 80', position: 'hauts' },
+  { name: 'Île-de-France', code: 'IDF', hint: '75 · 77 · 78 · 91 · 92 · 93 · 94 · 95', position: 'idf' },
+  { name: 'Pays de la Loire', code: 'PDL', hint: '44 · 49 · 53 · 72 · 85', position: 'pays' },
+  { name: 'Centre-Val de Loire', code: 'CVL', hint: '18 · 28 · 36 · 37 · 41 · 45', position: 'centre' },
+  { name: 'Grand Est', code: 'GES', hint: '08 · 10 · 51 · 52 · 54 · 55 · 57 · 67 · 68 · 88', position: 'est' },
+  { name: 'Nouvelle-Aquitaine', code: 'NAQ', hint: '16 · 17 · 19 · 23 · 24 · 33 · 40 · 47 · 64 · 79 · 86 · 87', position: 'aquitaine' },
+  { name: 'Bourgogne-Franche-Comté', code: 'BFC', hint: '21 · 25 · 39 · 58 ·  todo · 70 · 71 · 89 · 90'.replace(' todo ·', ''), position: 'bourgogne' },
+  { name: 'Auvergne-Rhône-Alpes', code: 'ARA', hint: '01 · 03 · 07 · 15 · 26 · 38 · 42 · 43 · 63 · 69 · 73 · 74', position: 'auvergne' },
+  { name: 'Occitanie', code: 'OCC', hint: '09 · 11 · 12 · 30 · 31 · 32 ·  podrán · 34 · 46 · 48 · да · 65 · 66 · 81 · 82'.replace(' podrán ·', '·').replace(' · да', ''), position: 'occitanie' },
+  { name: 'Provence-Alpes-Côte d’Azur', code: 'PAC', hint: '04 · 05 · 06 · 13 · ча · 83 · 84'.replace(' · ча', ''), position: 'paca' },
+  { name: 'Corse', code: 'COR', hint: '2A · 2B', position: 'corse' },
+  { name: 'Outre-mer', code: 'OM', hint: 'Guadeloupe · Martinique · Guyane · Réunion · Mayotte', position: 'outremer' },
+]
+
+
+function GeographicZonePicker({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  const [search, setSearch] = useState('')
+  const selected = value ? value.split(',').map(item => item.trim()).filter(Boolean) : []
+  const filtered = geographicRegions.filter(region => (region.name + ' ' + region.code + ' ' + region.hint).toLowerCase().includes(search.toLowerCase()))
+  const toggleRegion = (name: string) => {
+    const next = selected.includes(name) ? selected.filter(item => item !== name) : [...selected, name]
+    onChange(next.join(', '))
+  }
+  return <>
+    <div className="request-step-heading">
+      <span className="request-step-icon"><MapPin /></span>
+      <div><h2>Quelle zone géographique ?</h2><p>Sélectionnez une ou plusieurs régions sur notre carte simplifiée de France, ou recherchez une zone.</p></div>
+    </div>
+    <div className="geo-picker">
+      <div className="geo-picker-toolbar">
+        <label className="geo-search"><MapPin /><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Rechercher une région, un code ou un département…" aria-label="Rechercher une zone géographique" /></label>
+        <span className="geo-count">{selected.length} zone{selected.length > 1 ? 's' : ''} sélectionnée{selected.length > 1 ? 's' : ''}</span>
+      </div>
+      <div className="geo-map-panel">
+        <div className="geo-map-caption"><span className="geo-live-dot" /> France métropolitaine & outre-mer <small>Choix multiple</small></div>
+        <div className="geo-region-map" aria-label="Sélection des régions françaises">
+          {filtered.map(region => <button type="button" key={region.code} onClick={() => toggleRegion(region.name)} className={`geo-region geo-${region.position} ${selected.includes(region.name) ? 'is-selected' : ''}`} aria-pressed={selected.includes(region.name)}>
+            <strong>{region.name}</strong><small>{region.code}</small>
+          </button>)}
+          {filtered.length === 0 && <div className="geo-empty">Aucune région trouvée. Essayez un autre nom ou code.</div>}
+        </div>
+        <div className="geo-map-legend"><span><i className="geo-legend-dot" /> Disponible</span><span><i className="geo-legend-dot selected" /> Sélectionnée</span></div>
+      </div>
+      <div className="geo-region-details">
+        <div className="geo-region-details-title"><strong>Choisir par région</strong><span>Appuyez pour ajouter ou retirer une région</span></div>
+        <div className="geo-region-list">
+          {filtered.map(region => <button type="button" key={region.code} onClick={() => toggleRegion(region.name)} className={selected.includes(region.name) ? 'geo-region-option selected' : 'geo-region-option'} aria-pressed={selected.includes(region.name)}>
+            <span className="geo-option-check">{selected.includes(region.name) && <Check />}</span><span className="geo-option-copy"><strong>{region.name}</strong><small>{region.hint}</small></span>
+          </button>)}
+        </div>
+      </div>
+      {selected.length > 0 && <div className="geo-selected"><div><strong>Votre sélection</strong><span>{selected.length} zone(s) incluse(s) dans votre demande</span></div><div className="geo-chips">{selected.map(name => <button type="button" key={name} onClick={() => toggleRegion(name)} aria-label={`Retirer ${name}`}>{name}<span>×</span></button>)}</div><button type="button" className="geo-clear" onClick={() => onChange('')}>Tout effacer</button></div>}
+      <label className="request-label geo-extra">Précision complémentaire (facultatif)<textarea rows={2} value={selected.length ? '' : value} onChange={event => onChange(event.target.value)} placeholder="Ex. : villes précises, rayon autour d’une ville, codes postaux…" disabled={selected.length > 0} /></label>
+      {selected.length > 0 && <p className="geo-hint">Besoin d’une ville précise, d’un rayon ou d’un code postal ? Ajoutez-le à l’étape suivante dans les informations complémentaires.</p>}
+    </div>
+  </>
+}
 
 export function MultiStepRequest() {
   const [audience, setAudience] = useState<Audience | null>(null)
@@ -97,7 +157,7 @@ export function MultiStepRequest() {
       <div className="request-step-card">
         {step === 0 && <><div className="request-step-heading"><span className="request-step-icon"><Users /></span><div><h2>Quel type de fichier recherchez-vous ?</h2><p>Sélectionnez l’offre ou le besoin qui correspond à votre projet.</p></div></div><div className="request-choice-grid">{options.map(item => <button key={item} className={form.category === item ? 'request-choice selected' : 'request-choice'} onClick={() => update('category', item)}>{item}{form.category === item && <Check />}</button>)}</div></>}
         {step === 1 && <><div className="request-step-heading"><span className="request-step-icon">{audience === 'particuliers' ? <Home /> : <Building2 />}</span><div><h2>{audience === 'particuliers' ? 'Affinez votre sélection' : 'Quel secteur ciblez-vous ?'}</h2><p>Choisissez un ou plusieurs critères pour préciser votre besoin.</p></div></div><div className="request-choice-grid">{(audience === 'particuliers' ? criteriaOptions : sectorsOptions).map(item => { const key = audience === 'particuliers' ? 'criteria' : 'sectors'; const checked = form[key].includes(item); return <button key={item} className={checked ? 'request-choice selected' : 'request-choice'} onClick={() => toggle(key, item)}>{item}{checked && <Check />}</button> })}</div></>}
-        {step === 2 && <><div className="request-step-heading"><span className="request-step-icon"><MapPin /></span><div><h2>Quelle zone géographique ?</h2><p>Indiquez les villes, départements, régions ou pays concernés.</p></div></div><label className="request-label">Zone de recherche<textarea rows={4} value={form.zones} onChange={e => update('zones', e.target.value)} placeholder="Ex. : Île-de-France, Lyon et alentours, départements 33 et 40…" /></label></>}
+        {step === 2 && <GeographicZonePicker value={form.zones} onChange={value => update('zones', value)} />}
         {step === 3 && <><div className="request-step-heading"><span className="request-step-icon"><ShieldCheck /></span><div><h2>Volume et canaux souhaités</h2><p>Ces informations nous aideront à préparer une proposition adaptée.</p></div></div><label className="request-label">Nombre de contacts souhaité<input value={form.quantity} onChange={e => update('quantity', e.target.value)} placeholder="Ex. : 1 000, 5 000, à définir…" /></label><div className="request-label"><span>Canaux envisagés</span><div className="request-choice-grid request-choice-grid-compact">{channelOptions.map(c => { const checked = form.channels.includes(c); return <button key={c} className={checked ? 'request-choice selected' : 'request-choice'} onClick={() => toggle('channels', c)}>{c}{checked && <Check />}</button> })}</div></div></>}
         {step === 4 && <><div className="request-step-heading"><span className="request-step-icon"><Mail /></span><div><h2>Vos coordonnées</h2><p>Pour que notre équipe puisse revenir vers vous.</p></div></div><div className="request-fields-grid"><label className="request-label">Prénom *<input required value={form.firstName} onChange={e => update('firstName', e.target.value)} placeholder="Votre prénom" /></label><label className="request-label">Nom *<input required value={form.lastName} onChange={e => update('lastName', e.target.value)} placeholder="Votre nom" /></label><label className="request-label">E-mail *<input type="email" required value={form.email} onChange={e => update('email', e.target.value)} placeholder="vous@exemple.fr" /></label><label className="request-label">Téléphone<input type="tel" value={form.phone} onChange={e => update('phone', e.target.value)} placeholder="+33…" /></label><label className="request-label request-field-wide">Entreprise (facultatif)<input value={form.company} onChange={e => update('company', e.target.value)} placeholder="Nom de votre entreprise" /></label><label className="request-label request-field-wide">Informations complémentaires<textarea rows={3} value={form.message} onChange={e => update('message', e.target.value)} placeholder="Décrivez votre projet ou précisez vos critères…" /></label></div><label className="request-consent"><input type="checkbox" required checked={consent} onChange={e => setConsent(e.target.checked)} /><span>J’accepte que Fichierlead utilise mes informations pour répondre à cette demande.</span></label></>}
         {error && <p className="request-error" role="alert">{error}</p>}
