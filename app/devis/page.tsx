@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 }
 
 export default function QuotePage() {
-  return <main className="request-page"><MultiStepRequest /></main>
+  return <div className="request-page"><MultiStepRequest /></main>
 }
