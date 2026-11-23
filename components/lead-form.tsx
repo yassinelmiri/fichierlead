@@ -1,20 +1,44 @@
-import { ArrowRight, Mail } from 'lucide-react'
+'use client'
+
+import { useState, type FormEvent } from 'react'
+import { ArrowRight, Mail, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react'
 
 type LeadFormProps = {
   kind: 'quote' | 'contact'
 }
 
 export function LeadForm({ kind }: LeadFormProps) {
+  const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
+  const [feedback, setFeedback] = useState('')
   const isQuote = kind === 'quote'
   const subject = isQuote ? 'Demande de devis Fichierlead' : 'Prise de contact Fichierlead'
 
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (status === 'sending') return
+    setStatus('sending')
+    setFeedback('')
+    const formData = new FormData(event.currentTarget)
+    const payload = Object.fromEntries(formData.entries())
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...payload, kind }),
+      })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || 'Impossible d’envoyer votre message.')
+      setStatus('success')
+      setFeedback('Votre message a bien été envoyé. Notre équipe vous répondra dès que possible.')
+      event.currentTarget.reset()
+    } catch (error) {
+      setStatus('error')
+      setFeedback(error instanceof Error ? error.message : 'Une erreur est survenue. Réessayez dans quelques instants.')
+    }
+  }
+
   return (
-    <form
-      className="lead-form"
-      action={`mailto:contact@fichierlead.com?subject=${encodeURIComponent(subject)}`}
-      method="post"
-      encType="text/plain"
-    >
+    <form className="lead-form" onSubmit={handleSubmit}>
       <div className="form-grid">
         <label className="form-field">
           <span>Votre nom <b aria-hidden="true">*</b></span>
@@ -78,10 +102,10 @@ export function LeadForm({ kind }: LeadFormProps) {
         <span>J’accepte que Fichierlead utilise ces informations pour répondre à ma demande. <a href="/mentions-legales">En savoir plus</a>.</span>
       </label>
       <div className="form-submit-row">
-        <button className="button button-primary" type="submit">Préparer ma demande <ArrowRight aria-hidden="true" /></button>
-        <span className="form-private"><Mail aria-hidden="true" /> L’envoi se fait depuis votre messagerie.</span>
+        <button className="button button-primary" disabled={status === 'sending'} type="submit">{status === 'sending' ? <><Loader2 className="animate-spin" aria-hidden="true" /> Envoi en cours…</> : <>Envoyer ma demande <ArrowRight aria-hidden="true" /></>}</button>
+        <span className="form-private"><Mail aria-hidden="true" /> Envoi sécurisé via le serveur Fichierlead.</span>
       </div>
-      <p className="form-disclaimer">Sans service d’envoi configuré, ce formulaire ouvre un e-mail prérempli dans votre application de messagerie. Vous pourrez vérifier et envoyer le message depuis celle-ci. Rien n’est enregistré sur ce site.</p>
+      {feedback && <p role="status" className={status === 'success' ? 'form-feedback form-feedback-success' : 'form-feedback form-feedback-error'}>{status === 'success' ? <CheckCircle2 aria-hidden="true" /> : <AlertCircle aria-hidden="true" />}{feedback}</p>}
     </form>
   )
 }
